@@ -1,5 +1,5 @@
 import type { FileChange, PathEntry } from "../diff/compare.js";
-import type { TarEntry } from "../diff/tarball.js";
+import type { TarballContents, TarEntry } from "../diff/tarball.js";
 import { analyzeCode, isCodePath } from "./code.js";
 import type { Finding, RuleContext } from "./types.js";
 
@@ -69,6 +69,39 @@ function patches(changes: FileChange[]): Record<string, string> {
   return out;
 }
 
+/**
+ * Link / absolute / `..` problems that can escape the install directory. The prefixes are
+ * written by `readTarball` itself; the entry path only ever comes after them.
+ */
+function isTarballEscapeProblem(problem: string): boolean {
+  return (
+    problem.startsWith("absolute path ") ||
+    problem.startsWith("path traversal ") ||
+    problem.startsWith("symlink ") ||
+    problem.startsWith("hardlink ")
+  );
+}
+
+/** Explains `tarball-problem` from the kinds of problems present, not a single canned sentence. */
+export function tarballProblemDetail(
+  release: Pick<TarballContents, "problems" | "limitReached">,
+): string {
+  const { problems } = release;
+  const explanations: string[] = [];
+  if (problems.some(isTarballEscapeProblem)) {
+    explanations.push(
+      "npm never produces links, absolute paths or traversal; these can escape the install directory when extracted.",
+    );
+  }
+  if (release.limitReached) {
+    explanations.push(
+      "Reading stopped at a size limit, so the rest of the archive was not examined; an unusually large package, or an archive built to exhaust memory, trips it.",
+    );
+  }
+  const head = problems.join("; ");
+  return explanations.length > 0 ? `${head}. ${explanations.join(" ")}` : `${head}.`;
+}
+
 /** Findings about the files in the tarball and how they differ from the rebuild. */
 export function fileRules(context: RuleContext): Finding[] {
   const findings: Finding[] = [];
@@ -79,7 +112,7 @@ export function fileRules(context: RuleContext): Finding[] {
       id: "tarball-problem",
       severity: "critical",
       title: "the release tarball has suspicious entries",
-      detail: `${release.problems.join("; ")}. npm never produces links, absolute paths or traversal; these can escape the install directory when extracted.`,
+      detail: tarballProblemDetail(release),
       evidence: { problems: release.problems },
     });
   }
