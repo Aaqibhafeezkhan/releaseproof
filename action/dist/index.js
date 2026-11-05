@@ -64669,13 +64669,13 @@ function normalizeGithubRepository(value) {
   if (!value) {
     return void 0;
   }
-  const text = value.trim().replace(/^git\+/, "");
-  const short = text.replace(/^github:/, "");
+  const text = value.trim().replace(/^git\+/i, "");
+  const short = text.replace(/^github:/i, "");
   const shorthand = /^([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\/([A-Za-z0-9_.-]+?)(?:\.git)?$/.exec(short);
   if (shorthand && !short.includes(":") && !short.includes("//")) {
     return `https://github.com/${shorthand[1]}/${shorthand[2]}`.toLowerCase();
   }
-  const url = /^(?:https?:\/\/|git:\/\/|ssh:\/\/(?:git@)?|git@)(?:www\.)?github\.com[/:]([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?(?:[#?].*)?$/.exec(
+  const url = /^(?:https?:\/\/|git:\/\/|ssh:\/\/(?:git@)?|git@)(?:www\.)?github\.com[/:]([A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?(?:[#?].*)?$/i.exec(
     text
   );
   if (url) {
