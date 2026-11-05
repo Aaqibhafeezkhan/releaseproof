@@ -75,7 +75,7 @@ export function decide({ intent, login, assignees, repository }) {
   }
   return {
     action: "assign",
-    reply: `Assigned to @${login}. Please open a pull request when you are ready (see [CONTRIBUTING.md](${repo}/blob/main/CONTRIBUTING.md)), or comment \`/unassign\` if you can no longer work on it.`,
+    reply: `Assigned to @${login}. Please open a pull request when you are ready (see [CONTRIBUTING.md](${repo}/blob/main/CONTRIBUTING.md)), or comment \`/unassign\` if you can no longer work on it. If you find releaseproof useful, giving the [repository](${repo}) a ⭐ helps others find it. Thank you!`,
   };
 }
 
