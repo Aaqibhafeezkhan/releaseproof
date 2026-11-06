@@ -50,7 +50,7 @@ describe.skipIf(!process.env.RELEASEPROOF_DOCKER_TESTS)("rebuildPackage (docker)
     );
     for (const change of diff.changed) {
       console.log(
-        `[${spec}] changed ${change.path} (${change.kind})\\n${change.patch ?? "(no patch)"}`,
+        `[${spec}] changed ${change.path} (${change.kind})\n${change.patch ?? "(no patch)"}`,
       );
     }
     for (const entry of diff.onlyInRelease) {
@@ -109,4 +109,16 @@ describe.skipIf(!process.env.RELEASEPROOF_DOCKER_TESTS)("rebuildPackage (docker)
     },
     30 * 60_000,
   );
-});
+});      const distTags =
+        typeof metadata === "object" && metadata !== null && "dist-tags" in metadata
+          ? metadata["dist-tags"]
+          : null;
+      if (
+        typeof distTags !== "object" ||
+        distTags === null ||
+        !("latest" in distTags) ||
+        typeof distTags.latest !== "string" ||
+        distTags.latest.length === 0
+      ) {
+        throw new Error("npm registry did not provide releaseproof's dist-tags.latest");
+      }
