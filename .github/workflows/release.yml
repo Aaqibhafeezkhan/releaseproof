@@ -159,6 +159,14 @@ jobs:
           stage: ${{ needs.stage.outputs.stage-id }}
           commit: ${{ github.sha }}
           fail-on: non-zero
+      - name: Upload the staged report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: releaseproof-report-${{ needs.stage.outputs.version }}
+          path: releaseproof-report.json
+          retention-days: 90
+          if-no-files-found: warn
       - name: How to approve
         if: always()
         run: |
@@ -167,7 +175,9 @@ jobs:
             echo
             echo "If the verdict above is MATCHES SOURCE, approve with 2FA:"
             echo
-            echo '```'
+            echo "The staged check report is retained as the `releaseproof-report-${{ needs.stage.outputs.version }}` artifact for 90 days."
+            echo
+            echo ' ```'
             echo "npx -y npm@latest stage approve ${{ needs.stage.outputs.stage-id }}"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
