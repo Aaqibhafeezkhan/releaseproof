@@ -169,15 +169,17 @@ jobs:
           if-no-files-found: warn
       - name: How to approve
         if: always()
+        env:
+          VERSION: ${{ needs.stage.outputs.version }}
         run: |
           {
             echo "## Approve the release"
             echo
             echo "If the verdict above is MATCHES SOURCE, approve with 2FA:"
             echo
-            echo "The staged check report is retained as the `releaseproof-report-${{ needs.stage.outputs.version }}` artifact for 90 days."
-            echo
-            echo ' ```'
+            echo '```'
             echo "npx -y npm@latest stage approve ${{ needs.stage.outputs.stage-id }}"
             echo '```'
+            echo
+            echo "The full JSON report is kept as the \`releaseproof-report-${VERSION}\` artifact for 90 days."
           } >> "$GITHUB_STEP_SUMMARY"
