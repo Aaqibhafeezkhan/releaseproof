@@ -99,6 +99,10 @@ before any Docker call. Common names, registry ports, tags and SHA-256 digests (
 tag-plus-digest references) are accepted. Flag-like values, whitespace/control characters
 and empty names or tags are tool errors; omitting the override keeps the detected image.
 
+If Docker reports a missing image or manifest, the tool error names the image and suggests
+`--node` with a supported major or an explicit `--image`; not every major has a bookworm
+image. Network, authentication and platform-mismatch failures keep their raw Docker detail.
+
 **Build command.** If the package has a `build` script: pnpm → `pnpm --filter "<name>..." run
 build` (builds workspace dependencies first, topologically); Yarn Berry → `yarn workspaces
 foreach -Rt --from "<name>" run build`; npm workspaces / Yarn classic → the root `build`
