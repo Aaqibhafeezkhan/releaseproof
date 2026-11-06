@@ -58,7 +58,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           issue_number="$(gh issue list --state open --search 'in:title "Live tests failing"' --limit 100 --json number,title --jq '[.[] | select(.title == "Live tests failing")][0].number // empty')"
-          body="$(printf 'The scheduled live tests failed.\\n\\nRun: %s/%s/actions/runs/%s' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
+          body="$(printf 'The scheduled live tests failed.\n\nRun: %s/%s/actions/runs/%s' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
 
           if [ -n "$issue_number" ]; then
             gh issue comment "$issue_number" --body "$body"
