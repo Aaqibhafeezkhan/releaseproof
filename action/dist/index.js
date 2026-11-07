@@ -64644,6 +64644,10 @@ function readRegistryKeys(body) {
     if (!isRecord3(entry) || typeof entry.keyid !== "string" || typeof entry.key !== "string") {
       return null;
     }
+    const { expires } = entry;
+    if (expires !== void 0 && expires !== null && (typeof expires !== "string" || !Number.isFinite(Date.parse(expires)))) {
+      return null;
+    }
     keys.push({
       keyid: entry.keyid,
       key: entry.key,
