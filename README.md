@@ -83,6 +83,11 @@ memory limit (default `4g`; big TypeScript builds may need more), `--json` for t
 stderr, `--keep-volume` to inspect the build afterwards. Every rule and severity is
 documented in [docs/rules.md](./docs/rules.md).
 
+`--offline` is **not a no-network mode**: only the Sigstore trust root prefers its cache over
+refreshing, and even it is fetched when the cache is missing or expired. Registry requests, GitHub clones, Docker image pulls, dependency downloads
+and staged Rekor lookups can still use network; `--no-rekor` skips only that lookup.
+See [network access](./docs/faq.md#does---offline-disable-all-network-access) for details.
+
 Requirements: Node 22+, Docker. No account, no API key, no telemetry.
 
 Questions after a first run, such as why a package reports COULD NOT VERIFY or how to check a
