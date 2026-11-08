@@ -1,6 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { parseSpec, STAGE_ID_RE, ToolError, validateImageReference } from "@releaseproof/core";
+import {
+  parseMemoryLimit,
+  parseSpec,
+  STAGE_ID_RE,
+  ToolError,
+  validateImageReference,
+} from "@releaseproof/core";
 
 export type FailOn = "non-zero" | "differs" | "never";
 
@@ -106,13 +112,8 @@ export function parseInputs(getInput: GetInput, context: ActionContext): ActionI
       `Input "node" must be a Node.js major version such as 22, got "${nodeInput}"`,
     );
   }
-  const memoryInput = getInput("memory").trim().toLowerCase();
+  const memoryInput = parseMemoryLimit(getInput("memory"), 'Input "memory"');
   const imageInput = getInput("image");
-  if (memoryInput && !/^\d+[kmg]?$/.test(memoryInput)) {
-    throw new ToolError(
-      `Input "memory" must be a Docker size such as 4g or 6144m, got "${memoryInput}"`,
-    );
-  }
   const failOnInput = (getInput("fail-on").trim() || "non-zero") as FailOn;
   if (!["non-zero", "differs", "never"].includes(failOnInput)) {
     throw new ToolError(`Input "fail-on" must be non-zero, differs or never, got "${failOnInput}"`);
@@ -137,7 +138,7 @@ export function parseInputs(getInput: GetInput, context: ActionContext): ActionI
     nodeMajor,
     image: imageInput === "" ? undefined : validateImageReference(imageInput, 'Input "image"'),
     buildCommand: getInput("build-command").trim() || undefined,
-    memory: memoryInput || undefined,
+    memory: memoryInput,
     failOn: failOnInput,
     createIssue: createIssueInput === "true",
     issueLabels: getInput("issue-labels")
