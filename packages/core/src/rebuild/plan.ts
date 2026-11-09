@@ -181,6 +181,13 @@ function chooseNode(
   return { major: DEFAULT_NODE_MAJOR, source: "default" };
 }
 
+/** A real exact version per manager, used only in the "needs an exact version" message. */
+const EXACT_VERSION_EXAMPLE = {
+  npm: "npm@10.9.2",
+  pnpm: "pnpm@10.9.0",
+  yarn: "yarn@4.6.0",
+} as const;
+
 function parsePackageManagerField(field: string): PackageManager | undefined {
   const match = /^(npm|pnpm|yarn)@(\d+)(?:\.[^+\s]*)?(?:\+.*)?$/.exec(field.trim());
   if (!match) {
@@ -210,6 +217,15 @@ function chooseManager(
       if (parsed) {
         return parsed;
       }
+      // A known manager with a non-exact version gets a specific message.
+      const knownManager = /^(npm|pnpm|yarn)@/.exec(field.trim())?.[1] as
+        | keyof typeof EXACT_VERSION_EXAMPLE
+        | undefined;
+      if (knownManager) {
+        return {
+          unsupported: `package manager "${field}" must name an exact version such as ${EXACT_VERSION_EXAMPLE[knownManager]}`,
+        };
+      }
       // Guessing another tool here fails later in confusing ways (zod uses "nub"); say so.
       return {
         unsupported: `package manager "${field}" is not supported (only npm, pnpm and yarn are)`,
@@ -222,7 +238,14 @@ function chooseManager(
   }
   if (lock.has("pnpm-lock.yaml")) {
     const version = inspection.lockfileDetails.pnpm;
-    const spec = version === "5.4" ? "pnpm@7" : version === "6.0" ? "pnpm@8" : "pnpm@10";
+    const spec =
+      version === "5.3"
+        ? "pnpm@6"
+        : version === "5.4"
+          ? "pnpm@7"
+          : version === "6.0"
+            ? "pnpm@8"
+            : "pnpm@10";
     return { name: "pnpm", spec, source: `pnpm-lock.yaml (lockfileVersion ${version ?? "?"})` };
   }
   if (lock.has("yarn.lock")) {
