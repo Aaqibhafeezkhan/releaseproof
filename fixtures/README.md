@@ -14,17 +14,21 @@ here so tests can assert on paths and diffs, not to exercise any behaviour.
 
 ## Variants and expected findings
 
-Each row treats the variant as the release and `clean` as the rebuilt, verified source.
-The rule ids and severities come from the assertions in
+Each row treats the variant as the release and names its rebuilt, verified source where it
+differs from `clean`. The rule ids and severities come from the assertions in
 [`rules.test.ts`](../packages/core/src/rules/rules.test.ts).
 [`compare.test.ts`](../packages/core/src/diff/compare.test.ts) also checks the file and
 manifest diffs for these variants except `attacked-obfuscated`, whose findings are
 asserted in the rule tests.
 
-| Variant | Change compared with `clean` | Rule ids it must trigger | Highest severity |
+| Variant | Change and rebuilt source | Rule ids it must trigger | Highest severity |
 | --- | --- | --- | --- |
-| `clean` | None; the reference package compared with itself. | None | None |
-| `attacked-binary` | Adds the 20-byte native addon stand-in `build/Release/native.node`. | `native-code-added`, `file-added` | `critical` |
+| `clean` | None; compared with itself. | None | None |
+| `native-source` | Adds a four-byte native addon stand-in; compared with itself. | `native-code-present` | `info` |
+| `attacked-native-swapped` | Replaces the four-byte `build/Release/native.node` stand-in from `native-source` with different bytes. | `native-code-added`, `file-changed` | `critical` |
+| `native-identical` | Ships the same four-byte native addon as `native-source`. | `native-code-present` | `info` |
+| `attacked-binding-gyp` | Adds the harmless text build definition `binding.gyp`; compared with `clean`. | `native-code-added`, `file-added` | `critical` |
+| `attacked-binary` | Adds the 20-byte native addon stand-in `build/Release/native.node`; compared with `clean`. | `native-code-added`, `file-added` | `critical` |
 | `attacked-dependency` | Adds `left-pad` at `^1.3.0` to `dependencies` in `package.json`. | `dependency-added` | `high` |
 | `attacked-extra-file` | Adds `lib/telemetry.js`, which the source does not produce. | `file-added` | `high` |
 | `attacked-modified` | Adds a beacon URL string to `lib/greet.js`. | `file-changed` | `high` |

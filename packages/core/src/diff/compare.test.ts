@@ -97,6 +97,32 @@ describe("compareTarballs", () => {
     ]);
   });
 
+  it("detects a swapped native addon when both sides contain the same path", async () => {
+    const result = await compareFixtures("attacked-native-swapped", "native-source");
+    expect(result.matches).toBe(false);
+    expect(result.onlyInRelease).toEqual([]);
+    expect(result.onlyInRebuild).toEqual([]);
+    expect(result.changed.map((change) => [change.path, change.kind])).toEqual([
+      ["build/Release/native.node", "content"],
+    ]);
+    expect(result.changed[0]?.release.sha256).not.toBe(result.changed[0]?.rebuild.sha256);
+  });
+
+  it("compares identical native addon bytes as identical", async () => {
+    const result = await compareFixtures("native-identical", "native-source");
+    expect(result.matches).toBe(true);
+    expect(result.changed).toEqual([]);
+    expect(result.identical).toContain("build/Release/native.node");
+  });
+
+  it("reports an added binding.gyp as a release-only file", async () => {
+    const result = await compareFixtures("attacked-binding-gyp", "clean");
+    expect(result.matches).toBe(false);
+    expect(result.onlyInRelease).toEqual([
+      expect.objectContaining({ path: "binding.gyp", kind: "file", text: true }),
+    ]);
+  });
+
   it("labels line-ending-only changes as whitespace, with a patch", () => {
     const release = readTarball(
       rawTar([{ path: "package/a.js", content: "x = 1;\r\ny = 2;\r\n" }]),

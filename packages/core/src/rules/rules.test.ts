@@ -65,6 +65,26 @@ describe("runRules on the fixture packages", () => {
     expect(findings[0]?.paths).toEqual(["build/Release/native.node"]);
   });
 
+  it("catches a swapped native addon even when the source ships the same path", async () => {
+    const findings = runRules(await fixtureContext("attacked-native-swapped", "native-source"));
+    expect(ids(findings)).toEqual(["critical:native-code-added", "high:file-changed"]);
+    expect(findings[0]?.paths).toEqual(["build/Release/native.node"]);
+    expect(findings[1]?.paths).toEqual(["build/Release/native.node"]);
+  });
+
+  it("catches an added native addon build definition as critical", async () => {
+    const findings = runRules(await fixtureContext("attacked-binding-gyp"));
+    expect(ids(findings)).toEqual(["critical:native-code-added", "high:file-added"]);
+    expect(findings[0]?.paths).toEqual(["binding.gyp"]);
+    expect(findings[1]?.paths).toEqual(["binding.gyp"]);
+  });
+
+  it("reports an identical native addon as informational, not added", async () => {
+    const findings = runRules(await fixtureContext("native-identical", "native-source"));
+    expect(ids(findings)).toEqual(["info:native-code-present"]);
+    expect(findings[0]?.paths).toEqual(["build/Release/native.node"]);
+  });
+
   it("catches obfuscated code the source does not produce as critical", async () => {
     const findings = runRules(await fixtureContext("attacked-obfuscated"));
     expect(ids(findings)).toEqual(["critical:obfuscated-code-added", "high:file-added"]);
