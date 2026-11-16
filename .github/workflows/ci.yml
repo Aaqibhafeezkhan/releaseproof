@@ -89,6 +89,25 @@ jobs:
             echo "::error::the packed package.json contains catalog:/workspace: specifiers"
             exit 1
           fi
+      # Exercise the actual npm artifact from outside the workspace so local files cannot mask packaging mistakes.
+      - name: Smoke test packed CLI outside the workspace
+        working-directory: packages/cli
+        run: |
+          set -euo pipefail
+          tarball="$(find /tmp/pack -maxdepth 1 -name 'releaseproof-*.tgz' -print -quit)"
+          test -n "$tarball"
+          expected_version="$(node -p "require('./package.json').version")"
+          smoke_dir="$(mktemp -d)"
+          trap 'rm -rf "$smoke_dir"' EXIT
+          cd "$smoke_dir"
+          npm init -y >/dev/null
+          npm install --ignore-scripts --no-audit --no-fund "$tarball"
+          actual_version="$(./node_modules/.bin/releaseproof --version)"
+          if [ "$actual_version" != "$expected_version" ]; then
+            echo "::error::packed CLI version '$actual_version' does not match package.json version '$expected_version'"
+            exit 1
+          fi
+          ./node_modules/.bin/releaseproof check --help | grep -q "Exit codes"
       # The action runs from its committed bundle; a stale one would ship old code.
       - name: Action bundle must be committed up to date
         run: |
