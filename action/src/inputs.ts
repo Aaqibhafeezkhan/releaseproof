@@ -15,6 +15,7 @@ export interface ActionInputs {
   /** Undefined when a stage id is given without a usable package spec. */
   spec: string | undefined;
   stageId: string | undefined;
+  rekor: boolean;
   repository: string | undefined;
   commit: string | undefined;
   registry: string | undefined;
@@ -82,6 +83,10 @@ export function parseInputs(getInput: GetInput, context: ActionContext): ActionI
   if (stageInput && !STAGE_ID_RE.test(stageInput)) {
     throw new ToolError(`Input "stage" must be a stage id (UUID), got "${stageInput}"`);
   }
+  const rekorInput = getInput("rekor").trim().toLowerCase() || "true";
+  if (!["true", "false"].includes(rekorInput)) {
+    throw new ToolError(`Input "rekor" must be true or false, got "${rekorInput}"`);
+  }
   const manifest = readWorkspaceManifest(context.workspace);
   const packageInput = getInput("package").trim();
   const versionInput = getInput("version").trim();
@@ -141,6 +146,7 @@ export function parseInputs(getInput: GetInput, context: ActionContext): ActionI
   return {
     spec,
     stageId: stageInput || undefined,
+    rekor: rekorInput === "true",
     repository: repoInput || undefined,
     commit: commitInput || undefined,
     registry: getInput("registry").trim() || undefined,
